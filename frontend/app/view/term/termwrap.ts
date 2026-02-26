@@ -514,8 +514,7 @@ export class TermWrap {
         this.fitAddon.fit();
         const newTermSize = this.getTermSize();
         if (!this.areTermSizesEqual(oldTermSize, newTermSize)) {
-            const termSize: TermSize = newTermSize;
-            RpcApi.ControllerInputCommand(TabRpcClient, { blockid: this.blockId, termsize: termSize });
+            RpcApi.ControllerInputCommand(TabRpcClient, { blockid: this.blockId, termsize: newTermSize });
         }
         dlog(
             "resize",
