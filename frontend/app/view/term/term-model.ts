@@ -722,10 +722,7 @@ export class TermViewModel implements ViewModel {
         }
         this.triggerRestartAtom();
         await RpcApi.ControllerDestroyCommand(TabRpcClient, this.blockId);
-        const termsize = {
-            rows: this.termRef.current?.terminal?.rows,
-            cols: this.termRef.current?.terminal?.cols,
-        };
+        const termsize = this.termRef.current?.getTermSize();
         await RpcApi.ControllerResyncCommand(TabRpcClient, {
             tabid: globalStore.get(atoms.staticTabId),
             blockid: this.blockId,
@@ -740,10 +737,7 @@ export class TermViewModel implements ViewModel {
             meta: { "term:durable": isDurable },
         });
         await RpcApi.ControllerDestroyCommand(TabRpcClient, this.blockId);
-        const termsize = {
-            rows: this.termRef.current?.terminal?.rows,
-            cols: this.termRef.current?.terminal?.cols,
-        };
+        const termsize = this.termRef.current?.getTermSize();
         await RpcApi.ControllerResyncCommand(TabRpcClient, {
             tabid: globalStore.get(atoms.staticTabId),
             blockid: this.blockId,

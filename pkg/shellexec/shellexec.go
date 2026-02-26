@@ -54,6 +54,27 @@ type ShellProc struct {
 	WaitErr   error    // WaitErr is synchronized by DoneCh (written before DoneCh is closed) and CloseOnce
 }
 
+const maxUint16 = int(^uint16(0))
+
+func toWinsizeDimension(v int) uint16 {
+	if v <= 0 {
+		return 0
+	}
+	if v > maxUint16 {
+		return uint16(maxUint16)
+	}
+	return uint16(v)
+}
+
+func winsizeFromTermSize(termSize waveobj.TermSize) *pty.Winsize {
+	return &pty.Winsize{
+		Rows: toWinsizeDimension(termSize.Rows),
+		Cols: toWinsizeDimension(termSize.Cols),
+		X:    toWinsizeDimension(termSize.XPixel),
+		Y:    toWinsizeDimension(termSize.YPixel),
+	}
+}
+
 func (sp *ShellProc) Close() {
 	sp.Cmd.KillGraceful(DefaultGracefulKillWait)
 	go func() {
@@ -165,7 +186,7 @@ func StartWslShellProcNoWsh(ctx context.Context, termSize waveobj.TermSize, cmdS
 	if termSize.Rows <= 0 || termSize.Cols <= 0 {
 		return nil, fmt.Errorf("invalid term size: %v", termSize)
 	}
-	cmdPty, err := pty.StartWithSize(ecmd, &pty.Winsize{Rows: uint16(termSize.Rows), Cols: uint16(termSize.Cols)})
+	cmdPty, err := pty.StartWithSize(ecmd, winsizeFromTermSize(termSize))
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +304,7 @@ func StartWslShellProc(ctx context.Context, termSize waveobj.TermSize, cmdStr st
 		return nil, fmt.Errorf("invalid term size: %v", termSize)
 	}
 	shellutil.AddTokenSwapEntry(cmdOpts.SwapToken)
-	cmdPty, err := pty.StartWithSize(ecmd, &pty.Winsize{Rows: uint16(termSize.Rows), Cols: uint16(termSize.Cols)})
+	cmdPty, err := pty.StartWithSize(ecmd, winsizeFromTermSize(termSize))
 	if err != nil {
 		return nil, err
 	}
@@ -684,7 +705,7 @@ func StartLocalShellProc(logCtx context.Context, termSize waveobj.TermSize, cmdS
 		return nil, fmt.Errorf("invalid term size: %v", termSize)
 	}
 	shellutil.AddTokenSwapEntry(cmdOpts.SwapToken)
-	cmdPty, err := pty.StartWithSize(ecmd, &pty.Winsize{Rows: uint16(termSize.Rows), Cols: uint16(termSize.Cols)})
+	cmdPty, err := pty.StartWithSize(ecmd, winsizeFromTermSize(termSize))
 	if err != nil {
 		return nil, err
 	}
@@ -702,7 +723,7 @@ func RunSimpleCmdInPty(ecmd *exec.Cmd, termSize waveobj.TermSize) ([]byte, error
 	if termSize.Rows <= 0 || termSize.Cols <= 0 {
 		return nil, fmt.Errorf("invalid term size: %v", termSize)
 	}
-	cmdPty, err := pty.StartWithSize(ecmd, &pty.Winsize{Rows: uint16(termSize.Rows), Cols: uint16(termSize.Cols)})
+	cmdPty, err := pty.StartWithSize(ecmd, winsizeFromTermSize(termSize))
 	if err != nil {
 		cmdPty.Close()
 		return nil, err
